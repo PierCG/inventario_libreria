@@ -1,0 +1,37 @@
+:root {
+  background: #0f1419;
+  color: #ffffff;
+  color-scheme: dark;
+  font-family:
+    Segoe UI,
+    Roboto,
+    sans-serif;
+  font-size: 14px;
+  font-synthesis: none;
+  line-height: 1.45;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #0f1419;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #0f1419;
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+select,
+textarea {
+  letter-spacing: 0;
+}
