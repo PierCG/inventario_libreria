@@ -1,5 +1,10 @@
 import { useCallback, useEffect } from "react";
 
+function toNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export function useDashboardActions({
   canWrite,
   invalidateAll,
@@ -24,9 +29,17 @@ export function useDashboardActions({
 
   const requestMovement = useCallback(
     (producto, type) => {
+      if (type === "salida" && toNumber(producto?.stock_actual) <= 0) {
+        showMessage(
+          "error",
+          "No se puede registrar una salida porque el producto no tiene stock disponible.",
+        );
+        return;
+      }
+
       if (requireSession()) openMovement(producto, type);
     },
-    [openMovement, requireSession],
+    [openMovement, requireSession, showMessage],
   );
 
   useEffect(() => {

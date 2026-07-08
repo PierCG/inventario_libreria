@@ -115,9 +115,9 @@ export default function ProductsTable({
               </tr>
             )}
             {visibleWindow.products.map((producto) => {
-              const lowStock =
-                toNumber(producto.stock_actual) <
-                toNumber(producto.stock_minimo);
+              const currentStock = toNumber(producto.stock_actual);
+              const lowStock = currentStock < toNumber(producto.stock_minimo);
+              const canCreateOutput = canWrite && currentStock > 0;
 
               return (
                 <tr
@@ -137,8 +137,7 @@ export default function ProductsTable({
                         lowStock ? "stock-pill stock-low" : "stock-pill"
                       }
                     >
-                      {toNumber(producto.stock_actual)} / mín.{" "}
-                      {toNumber(producto.stock_minimo)}
+                      {currentStock} / mín. {toNumber(producto.stock_minimo)}
                     </span>
                   </td>
                   <td>
@@ -153,7 +152,12 @@ export default function ProductsTable({
                       Entrada
                     </button>
                     <button
-                      disabled={!canWrite}
+                      disabled={!canCreateOutput}
+                      title={
+                        currentStock <= 0
+                          ? "Sin stock disponible para vender"
+                          : "Registrar salida de stock"
+                      }
                       type="button"
                       onClick={() => onMovement(producto, "salida")}
                     >

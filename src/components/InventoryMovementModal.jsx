@@ -14,13 +14,25 @@ export default function InventoryMovementModal({
   onSaved,
   onMessage,
 }) {
-  const [cantidad, setCantidad] = useState("1");
+  const currentStock = toNumber(producto.stock_actual);
+  const [cantidad, setCantidad] = useState(() =>
+    type === "salida" && currentStock <= 0 ? "0" : "1",
+  );
   const [motivo, setMotivo] = useState(type === "entrada" ? "Compra" : "Venta");
   const [saving, setSaving] = useState(false);
 
-  const currentStock = toNumber(producto.stock_actual);
   const movementLabel =
     type === "entrada" ? "Entrada de stock" : "Salida de stock";
+  const amount = Number(cantidad);
+  const isValidAmount = Number.isInteger(amount) && amount > 0;
+  const stockExhausted = type === "salida" && currentStock <= 0;
+  const stockInsufficient = type === "salida" && amount > currentStock;
+  const submitDisabled =
+    saving ||
+    stockExhausted ||
+    stockInsufficient ||
+    !isValidAmount ||
+    !motivo.trim();
   const nextStock = useMemo(() => {
     const amount = toNumber(cantidad);
     return type === "entrada" ? currentStock + amount : currentStock - amount;
@@ -28,7 +40,6 @@ export default function InventoryMovementModal({
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const amount = Number(cantidad);
     const cleanReason = motivo.trim();
 
     if (!session?.user) {
@@ -36,12 +47,20 @@ export default function InventoryMovementModal({
       return;
     }
 
-    if (!Number.isInteger(amount) || amount <= 0) {
+    if (!isValidAmount) {
       onMessage("error", "La cantidad debe ser un entero mayor a 0.");
       return;
     }
 
-    if (type === "salida" && amount > currentStock) {
+    if (stockExhausted) {
+      onMessage(
+        "error",
+        "No se puede vender este producto porque no tiene stock disponible.",
+      );
+      return;
+    }
+
+    if (stockInsufficient) {
       onMessage("error", "No hay stock suficiente para esta salida.");
       return;
     }
@@ -118,13 +137,25 @@ export default function InventoryMovementModal({
           <label>
             Cantidad
             <input
-              min="1"
+              disabled={stockExhausted}
+              max={type === "salida" ? currentStock : undefined}
+              min={type === "salida" && stockExhausted ? "0" : "1"}
               required
               step="1"
               type="number"
               value={cantidad}
               onChange={(event) => setCantidad(event.target.value)}
             />
+            {stockExhausted && (
+              <small className="danger-text">
+                Este producto no tiene stock disponible para vender.
+              </small>
+            )}
+            {!stockExhausted && stockInsufficient && (
+              <small className="danger-text">
+                La cantidad supera el stock disponible.
+              </small>
+            )}
           </label>
           <label>
             Motivo
@@ -140,7 +171,11 @@ export default function InventoryMovementModal({
           <button className="secondary-button" type="button" onClick={onClose}>
             Cancelar
           </button>
-          <button className="primary-button" disabled={saving} type="submit">
+          <button
+            className="primary-button"
+            disabled={submitDisabled}
+            type="submit"
+          >
             {saving ? "Registrando..." : "Registrar"}
           </button>
         </div>
