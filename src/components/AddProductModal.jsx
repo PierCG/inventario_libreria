@@ -86,14 +86,20 @@ export default function AddProductModal({
         return;
       }
 
-      const { error } = await supabase
+      const { data: savedProduct, error } = await supabase
         .from("productos")
         .insert(payload)
-        .select()
+        .select("id, codigo, nombre")
         .single();
       if (error) throw error;
+      if (!savedProduct?.id) {
+        throw new Error("Supabase no confirmó el producto guardado.");
+      }
 
-      onMessage("success", "Producto agregado correctamente.");
+      onMessage(
+        "success",
+        `Producto ${savedProduct.nombre} guardado correctamente.`,
+      );
       onSaved();
       onClose();
     } catch (error) {

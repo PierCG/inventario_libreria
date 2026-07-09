@@ -1209,7 +1209,7 @@ td span {
   justify-content: center;
   padding: 24px;
   position: fixed;
-  z-index: 20;
+  z-index: 90;
 }
 
 .modal-card {
@@ -1833,7 +1833,7 @@ td span {
   }
 
   .table-panel td:nth-child(1)::before {
-    content: "C?digo";
+    content: "Codigo";
   }
 
   .table-panel td:nth-child(2)::before {
@@ -1902,11 +1902,12 @@ td span {
   .modal-overlay {
     align-items: end;
     padding: 10px;
+    z-index: 90;
   }
 
   .modal-card {
     border-radius: 16px 16px 10px 10px;
-    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
     width: 100%;
   }
 
@@ -1926,7 +1927,22 @@ td span {
   }
 
   .modal-actions {
-    padding: 0 16px 16px;
+    background: linear-gradient(
+      180deg,
+      rgba(37, 45, 61, 0.82),
+      var(--bg-card) 34%
+    );
+    border-top: 1px solid var(--border);
+    bottom: 0;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 1fr;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    position: sticky;
+  }
+
+  .modal-actions button {
+    min-height: 48px;
   }
 
   .auth-card {
