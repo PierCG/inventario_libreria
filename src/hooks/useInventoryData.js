@@ -37,7 +37,45 @@ async function fetchMovimientos() {
     .limit(1000);
 
   if (error) throw error;
-  return data ?? [];
+
+  const movimientos = data ?? [];
+  const userIds = [
+    ...new Set(
+      movimientos.map((movimiento) => movimiento.usuario_id).filter(Boolean),
+    ),
+  ];
+
+  if (userIds.length === 0) {
+    return movimientos;
+  }
+
+  const { data: usuarios, error: usuariosError } = await supabase
+    .from("usuarios")
+    .select("id, nombre, email")
+    .in("id", userIds);
+
+  if (usuariosError) {
+    console.warn(
+      "No se pudieron cargar nombres de usuario:",
+      usuariosError.message,
+    );
+    return movimientos;
+  }
+
+  const usuariosPorId = new Map(
+    (usuarios ?? []).map((usuario) => [usuario.id, usuario]),
+  );
+
+  return movimientos.map((movimiento) => {
+    const usuario = usuariosPorId.get(movimiento.usuario_id);
+    return {
+      ...movimiento,
+      usuario_nombre:
+        usuario?.nombre ||
+        usuario?.email?.split("@")[0] ||
+        "Usuario del sistema",
+    };
+  });
 }
 
 export function useInventoryData() {

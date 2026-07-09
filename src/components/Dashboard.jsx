@@ -9,6 +9,7 @@ import {
 } from "../hooks/useInventoryData";
 import { useProductFilters } from "../hooks/useProductFilters";
 import { useRealtimeInventory } from "../hooks/useRealtimeInventory";
+import { getUserDisplayName } from "../utils/userDisplay";
 import AddProductModal from "./AddProductModal";
 import CategoriesPanel from "./CategoriesPanel";
 import DeleteProductModal from "./DeleteProductModal";
@@ -32,7 +33,7 @@ export default function Dashboard({ session }) {
     invalidateCategorias,
     invalidateMovimientos,
   } = useInvalidateInventory();
-  const { canAccess, role } = usePermissions();
+  const { canAccess } = usePermissions();
   const {
     activeView,
     dismissToast,
@@ -72,43 +73,61 @@ export default function Dashboard({ session }) {
   const showProductsModule = canAccess(MODULES.PRODUCTOS);
   const showMovementsModule = canAccess(MODULES.MOVIMIENTOS);
   const showReportsModule = canAccess(MODULES.REPORTES);
+  const displayName = getUserDisplayName(session?.user);
+  const isProductView = ["todos", "categoria", "bajo-stock"].includes(
+    activeView,
+  );
+  const showCategorySidebar = showProductsModule && isProductView;
 
   return (
     <main className="admin-layout">
       <aside className="admin-sidebar">
         <div className="sidebar-brand">
-          <span className="brand-mark">LI</span>
-          <strong>Inventario</strong>
+          <span className="brand-mark" aria-hidden="true">
+            LIB
+          </span>
+          <strong>Librería</strong>
         </div>
 
         <nav className="side-menu" aria-label="Menu principal">
-          <a className="active" href="#dashboard">
-            <span>D</span>
-            Panel
-          </a>
           {showProductsModule && (
-            <a href="#productos" onClick={() => setActiveView("todos")}>
+            <a
+              className={
+                ["todos", "bajo-stock"].includes(activeView) ? "active" : ""
+              }
+              href="#productos"
+              onClick={() => setActiveView("todos")}
+            >
               <span>P</span>
               Productos
-              <b>v</b>
             </a>
           )}
           {showProductsModule && (
-            <a href="#categorias" onClick={() => setActiveView("categoria")}>
+            <a
+              className={activeView === "categoria" ? "active" : ""}
+              href="#categorias"
+              onClick={() => setActiveView("categoria")}
+            >
               <span>C</span>
               Categorías
-              <b>v</b>
             </a>
           )}
           {showMovementsModule && (
-            <a href="#movimientos" onClick={() => setActiveView("movimientos")}>
+            <a
+              className={activeView === "movimientos" ? "active" : ""}
+              href="#movimientos"
+              onClick={() => setActiveView("movimientos")}
+            >
               <span>M</span>
               Movimientos
-              <b>v</b>
             </a>
           )}
           {showReportsModule && (
-            <a href="#reportes">
+            <a
+              className={activeView === "reportes" ? "active" : ""}
+              href="#reportes"
+              onClick={() => setActiveView("reportes")}
+            >
               <span>R</span>
               Reportes
             </a>
@@ -119,10 +138,12 @@ export default function Dashboard({ session }) {
       <section className="admin-main">
         <header className="topbar">
           <div className="topbar-logo">
-            <span className="topbar-mark">LI</span>
+            <span className="topbar-mark" aria-hidden="true">
+              LIB
+            </span>
             <div>
               <strong>Librería Inventario</strong>
-              <small>Panel operativo · rol {role}</small>
+              <small>Hola, {displayName}</small>
             </div>
           </div>
           <label className="topbar-search">
@@ -142,12 +163,14 @@ export default function Dashboard({ session }) {
         </header>
 
         <section className="dashboard-heading" id="dashboard">
-          <div className="heading-icon">D</div>
+          <div className="heading-icon" aria-hidden="true">
+            📚
+          </div>
           <div>
-            <h1>PANEL</h1>
+            <span className="welcome-kicker">Inicio rápido</span>
+            <h1>Bienvenido, {displayName}</h1>
             <p>
-              Control general del inventario de librería: productos, categorías,
-              unidades disponibles y alertas de stock mínimo.
+              Gestiona productos, stock y movimientos sin pasos innecesarios.
             </p>
           </div>
           <button
@@ -183,42 +206,55 @@ export default function Dashboard({ session }) {
           </div>
         )}
 
-        {showProductsModule && (
-          <section className="workspace-grid" id="productos">
-            <aside className="left-workspace" id="categorias">
-              <CategoriesPanel
-                categorias={categorias}
-                selectedCategory={filters.categoryId}
-                onCategoryChange={handleCategoryChange}
-                onCategoryCreated={invalidateCategorias}
-                onMessage={showMessage}
-                canWrite={canWrite}
-              />
-            </aside>
+        {(showProductsModule || showMovementsModule || showReportsModule) && (
+          <section
+            className={
+              showCategorySidebar
+                ? "workspace-grid"
+                : "workspace-grid simple-workspace"
+            }
+            id="productos"
+          >
+            {showCategorySidebar && (
+              <aside className="left-workspace" id="categorias">
+                <CategoriesPanel
+                  categorias={categorias}
+                  selectedCategory={filters.categoryId}
+                  onCategoryChange={handleCategoryChange}
+                  onCategoryCreated={invalidateCategorias}
+                  onMessage={showMessage}
+                  canWrite={canWrite}
+                />
+              </aside>
+            )}
 
             <section className="main-workspace">
               <div className="view-tabs" aria-label="Vistas de inventario">
-                <button
-                  className={activeView === "todos" ? "active" : ""}
-                  type="button"
-                  onClick={() => setActiveView("todos")}
-                >
-                  Todos
-                </button>
-                <button
-                  className={activeView === "categoria" ? "active" : ""}
-                  type="button"
-                  onClick={() => setActiveView("categoria")}
-                >
-                  Por categoría
-                </button>
-                <button
-                  className={activeView === "bajo-stock" ? "active" : ""}
-                  type="button"
-                  onClick={() => setActiveView("bajo-stock")}
-                >
-                  Bajo stock
-                </button>
+                {showProductsModule && (
+                  <>
+                    <button
+                      className={activeView === "todos" ? "active" : ""}
+                      type="button"
+                      onClick={() => setActiveView("todos")}
+                    >
+                      Todos
+                    </button>
+                    <button
+                      className={activeView === "categoria" ? "active" : ""}
+                      type="button"
+                      onClick={() => setActiveView("categoria")}
+                    >
+                      Por categoría
+                    </button>
+                    <button
+                      className={activeView === "bajo-stock" ? "active" : ""}
+                      type="button"
+                      onClick={() => setActiveView("bajo-stock")}
+                    >
+                      Bajo stock
+                    </button>
+                  </>
+                )}
                 {showMovementsModule && (
                   <button
                     className={activeView === "movimientos" ? "active" : ""}
@@ -228,81 +264,87 @@ export default function Dashboard({ session }) {
                     Movimientos
                   </button>
                 )}
+                {showReportsModule && (
+                  <button
+                    className={activeView === "reportes" ? "active" : ""}
+                    type="button"
+                    onClick={() => setActiveView("reportes")}
+                  >
+                    Reportes
+                  </button>
+                )}
               </div>
 
-              {activeView === "categoria" && (
-                <section
-                  className="category-overview"
-                  aria-label="Resumen por categoría"
-                >
-                  {categorySummary.map((categoria) => (
-                    <button
-                      className={
-                        String(filters.categoryId) === String(categoria.id)
-                          ? "category-card active"
-                          : "category-card"
-                      }
-                      key={categoria.id}
-                      type="button"
-                      onClick={() => handleCategoryChange(String(categoria.id))}
-                    >
-                      <strong>{categoria.nombre}</strong>
-                      <span>{categoria.count} productos</span>
-                      <small>{categoria.lowStock} con bajo stock</small>
-                    </button>
-                  ))}
-                </section>
-              )}
-
-              {activeView === "bajo-stock" && (
-                <section
-                  className="low-stock-alert"
-                  aria-label="Alertas de bajo stock"
-                >
-                  <strong>
-                    {lowStockProducts.length} productos con bajo stock
-                  </strong>
-                  <span>
-                    Revisa la reposición antes de registrar nuevas salidas.
-                  </span>
-                </section>
-              )}
-
-              <SearchAndFilter
-                categorias={categorias}
-                filters={filters}
-                onFiltersChange={setFilters}
-                onAddProduct={requestAddProduct}
-                canWrite={canWrite}
-              />
-
-              {activeView === "movimientos" && showMovementsModule ? (
+              {activeView === "reportes" && showReportsModule ? (
+                <ReportsPanel productos={productos} movimientos={movimientos} />
+              ) : activeView === "movimientos" && showMovementsModule ? (
                 <MovementsHistory movimientos={movimientos} />
               ) : (
-                <ProductsTable
-                  productos={visibleProducts}
-                  loading={isLoading}
-                  isFetching={isFetching}
-                  viewMode={activeView}
-                  onEdit={modals.setEditingProduct}
-                  onDelete={modals.setDeletingProduct}
-                  onView={modals.setViewingProduct}
-                  onMovement={requestMovement}
-                  canWrite={canWrite}
-                />
+                <>
+                  {activeView === "categoria" && (
+                    <section
+                      className="category-overview"
+                      aria-label="Resumen por categoría"
+                    >
+                      {categorySummary.map((categoria) => (
+                        <button
+                          className={
+                            String(filters.categoryId) === String(categoria.id)
+                              ? "category-card active"
+                              : "category-card"
+                          }
+                          key={categoria.id}
+                          type="button"
+                          onClick={() =>
+                            handleCategoryChange(String(categoria.id))
+                          }
+                        >
+                          <strong>{categoria.nombre}</strong>
+                          <span>{categoria.count} productos</span>
+                          <small>{categoria.lowStock} con bajo stock</small>
+                        </button>
+                      ))}
+                    </section>
+                  )}
+
+                  {activeView === "bajo-stock" && (
+                    <section
+                      className="low-stock-alert"
+                      aria-label="Alertas de bajo stock"
+                    >
+                      <strong>
+                        {lowStockProducts.length} productos con bajo stock
+                      </strong>
+                      <span>
+                        Revisa la reposición antes de registrar nuevas salidas.
+                      </span>
+                    </section>
+                  )}
+
+                  <SearchAndFilter
+                    categorias={categorias}
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    onAddProduct={requestAddProduct}
+                    canWrite={canWrite}
+                  />
+
+                  <ProductsTable
+                    productos={visibleProducts}
+                    loading={isLoading}
+                    isFetching={isFetching}
+                    viewMode={activeView}
+                    onEdit={modals.setEditingProduct}
+                    onDelete={modals.setDeletingProduct}
+                    onView={modals.setViewingProduct}
+                    onMovement={requestMovement}
+                    canWrite={canWrite}
+                  />
+                </>
               )}
             </section>
           </section>
         )}
-
-        <section className="secondary-grid">
-          {showMovementsModule && activeView !== "movimientos" && (
-            <MovementsHistory movimientos={movimientos} />
-          )}
-          {showReportsModule && (
-            <ReportsPanel productos={productos} movimientos={movimientos} />
-          )}
-        </section>
 
         {modals.isAddOpen && (
           <AddProductModal

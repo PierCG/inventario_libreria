@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const PAGE_SIZE = 50;
 const ROW_HEIGHT = 74;
@@ -30,13 +30,24 @@ export default function ProductsTable({
   const totalPages = Math.max(1, Math.ceil(productos.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const [scrollTop, setScrollTop] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateMobileState = () => setIsMobile(mediaQuery.matches);
+
+    updateMobileState();
+    mediaQuery.addEventListener("change", updateMobileState);
+
+    return () => mediaQuery.removeEventListener("change", updateMobileState);
+  }, []);
 
   const pageProducts = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return productos.slice(start, start + PAGE_SIZE);
   }, [currentPage, productos]);
 
-  const virtualEnabled = pageProducts.length > 30;
+  const virtualEnabled = pageProducts.length > 30 && !isMobile;
   const visibleWindow = useMemo(() => {
     if (!virtualEnabled) {
       return {

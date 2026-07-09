@@ -26,6 +26,7 @@ export default function LoginPage() {
     [],
   );
   const [mode, setMode] = useState("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState(rememberedEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -56,6 +57,10 @@ export default function LoginPage() {
   const validateCredentials = () => {
     if (!isValidEmail(cleanEmail)) {
       return "Ingresa un correo válido.";
+    }
+
+    if (isRegisterMode && !name.trim()) {
+      return "Ingresa tu nombre.";
     }
 
     if (!password) {
@@ -91,6 +96,11 @@ export default function LoginPage() {
           email: cleanEmail,
           password,
           options: {
+            data: {
+              full_name: name.trim(),
+              name: name.trim(),
+              nombre: name.trim(),
+            },
             emailRedirectTo: window.location.origin,
           },
         });
@@ -190,6 +200,18 @@ export default function LoginPage() {
             <div className={`auth-message ${message.type}`} role="status">
               {message.text}
             </div>
+          )}
+
+          {isRegisterMode && (
+            <label className="auth-field">
+              <span>Nombre</span>
+              <input
+                autoComplete="name"
+                placeholder="tu nombre"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </label>
           )}
 
           <label className={`auth-field ${emailIsReady ? "" : "invalid"}`}>

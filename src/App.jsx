@@ -4,6 +4,24 @@ import "./App.css";
 import Dashboard from "./components/Dashboard";
 import LoginPage from "./components/LoginPage";
 import { PermissionProvider } from "./contexts/PermissionContext";
+import { getUserDisplayName } from "./utils/userDisplay";
+
+async function syncUserProfile(user) {
+  if (!user?.id || !user?.email) return;
+
+  const { error } = await supabase.from("usuarios").upsert(
+    {
+      email: user.email,
+      id: user.id,
+      nombre: getUserDisplayName(user),
+    },
+    { onConflict: "id" },
+  );
+
+  if (error) {
+    console.warn("No se pudo sincronizar el perfil de usuario:", error.message);
+  }
+}
 
 function App() {
   const [session, setSession] = useState(null);
@@ -19,6 +37,7 @@ function App() {
       setSession(data?.session ?? null);
       if (data?.session?.user?.email) {
         localStorage.setItem("inventario_user_email", data.session.user.email);
+        syncUserProfile(data.session.user);
       }
       setLoadingSession(false);
     }
@@ -30,6 +49,7 @@ function App() {
       setLoadingSession(false);
       if (nextSession?.user?.email) {
         localStorage.setItem("inventario_user_email", nextSession.user.email);
+        syncUserProfile(nextSession.user);
       } else {
         localStorage.removeItem("inventario_user_email");
       }

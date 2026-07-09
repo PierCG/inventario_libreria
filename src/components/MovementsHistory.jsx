@@ -134,7 +134,7 @@ export default function MovementsHistory({ movimientos }) {
                   </td>
                   <td>{movimiento.cantidad}</td>
                   <td>{movimiento.motivo || "-"}</td>
-                  <td>{movimiento.usuario_id || "-"}</td>
+                  <td>{movimiento.usuario_nombre || "Usuario del sistema"}</td>
                 </tr>
               ))}
             </tbody>

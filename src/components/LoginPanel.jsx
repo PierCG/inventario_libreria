@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
+import { getUserDisplayName, getUserInitials } from "../utils/userDisplay";
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -60,9 +61,17 @@ export default function LoginPanel({ session, onMessage }) {
   };
 
   if (session?.user) {
+    const displayName = getUserDisplayName(session.user);
+
     return (
       <div className="login-panel signed-in">
-        <span>{session.user.email}</span>
+        <span className="user-avatar" aria-hidden="true">
+          {getUserInitials(session.user)}
+        </span>
+        <span className="user-summary">
+          <strong>{displayName}</strong>
+          <small>{session.user.email}</small>
+        </span>
         <button
           className="secondary-button"
           disabled={loading}
